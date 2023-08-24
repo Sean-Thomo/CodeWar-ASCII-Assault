@@ -19,12 +19,14 @@ def handle_client(conn, addr):
     connected = True
     while connected:
         msg_length = conn.recv(HEADER).decode(FORMAT) #blocking line
-        msg_length = int(msg_length)
-        msg = conn.recv(msg_length).decode(FORMAT)
-        if msg == DISCONNECT_MESSAGE:
-            connected = False
-        
-        print(f"{addr} > {msg}")
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = conn.recv(msg_length).decode(FORMAT)
+            if msg == DISCONNECT_MESSAGE:
+                connected = False
+            
+            print(f"{addr} > {msg}")
+            conn.send("Msg received".encode())
         
     conn.close()
 
@@ -32,7 +34,6 @@ def handle_client(conn, addr):
 # Handle new connection
 def start():
     server.listen()
-    
     print(f"Server > listening on {SERVER}")
     while True:
         # conn - socket allows us to communucate back connected client
@@ -40,8 +41,8 @@ def start():
         conn, addr = server.accept() # bloacking line
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
-        print(f"Server > [ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
+        print(f"Server > [ACTIVE CONNECTIONS] {threading.active_count()-1}")
         
-
-print("Server > Sever is starting...")
-start()
+if __name__ == "__main__":
+    print("Server > Sever is starting...")
+    start()
